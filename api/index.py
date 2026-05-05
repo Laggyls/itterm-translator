@@ -57,12 +57,6 @@ STYLE_RULES = {
         "Emoji style should frequently include symbols like stars, sparkles, nails, lips, avocado, and side-eye vibes "
         "(for example: ⭐, 🌟, ✨, 💅, 💋, 🥑, 🙄/👀) when it fits the sentence naturally."
     ),
-    "abstract_cn": (
-        "Use Chinese abstract internet humor style (抽象文化): mildly surreal, meme-aware, "
-        "and intentionally witty while preserving the original intent. "
-        "Best for playful community content and humorous reposts. "
-        "Use heavier emoji texture than normal, and prefer using ':doge:' as a recurring reaction marker when suitable."
-    ),
 }
 
 
@@ -73,11 +67,11 @@ SOCIAL_STYLE_BY_VARIANT = {
     ),
     "zh_cn": (
         "Write like a native Mainland China social media user (Bilibili/Weibo/Xiaohongshu style): "
-        "internet-native wording, natural slang where appropriate, and fitting emoji usage only when applicable."
+        "internet-native wording, natural slang where appropriate, and fitting emoji usage when applicable."
     ),
     "zh_tw": (
         "Write like a native Taiwan social media user (Threads/Dcard/PTT style): "
-        "Taiwan online expressions, natural cadence, and fitting emoji usage only when applicable."
+        "Taiwan online expressions, natural cadence, and fitting emoji usage when applicable."
     ),
     "zh_hk_written": (
         "Write like a native Hong Kong online writer using written Chinese (Threads/local forums style): "
@@ -85,7 +79,7 @@ SOCIAL_STYLE_BY_VARIANT = {
     ),
     "zh_hk_spoken": (
         "Write like a native Hong Kong netizen in Cantonese (LIHKG/Threads style): "
-        "authentic colloquial Cantonese wording and particles, with natural emoji usage only when applicable."
+        "authentic colloquial Cantonese wording and particles, with natural emoji usage when applicable."
     ),
 }
 
@@ -96,6 +90,12 @@ def wants_chinese(target_variant):
 
 def contains_cjk(text):
     return bool(re.search(r"[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]", text))
+
+
+def has_required_style_markers(text, tone_style):
+    if tone_style == "floptropica":
+        return bool(re.search(r"[⭐🌟✨💅💋🥑🙄👀]", text))
+    return True
 
 
 def build_system_prompt(target_variant, tone_style):
@@ -110,13 +110,6 @@ def build_system_prompt(target_variant, tone_style):
             "but keep the core meaning and key facts intact. "
             "Reference iconic FLOPTROPICA culture elements where relevant and natural, such as Jiafei, CupcakKe, or DaBoyz. "
             "Do not force references if the input context is serious or unrelated."
-        )
-    elif tone_style == "abstract_cn":
-        style_rule = (
-            "Write with Chinese abstract internet culture flavor (抽象文化), adapted to the selected target variant. "
-            "You may add relevant meme-like or playful phrasing to make it funnier and more native, "
-            "but do not change important facts or user intent. "
-            "Increase absurdist rhythm and emoji density; include ':doge:' in the output when context permits."
         )
 
     return (
@@ -171,11 +164,20 @@ def call_deepseek(text, source_language, target_variant, tone_style):
     except (KeyError, IndexError, TypeError, ValueError):
         return None, "DeepSeek returned unexpected response format."
 
-    # One retry with stricter language constraints when auto-detect drifts.
+    # One retry with stricter language constraints when auto-detect drifts
+    # or when style markers are missing for explicit meme tones.
     mismatch = (wants_chinese(target_variant) and not contains_cjk(translated)) or (
         target_variant == "en_us" and contains_cjk(translated)
     )
-    if mismatch:
+    style_missing = not has_required_style_markers(translated, tone_style)
+    if mismatch or style_missing:
+        correction_rules = []
+        if mismatch:
+            correction_rules.append(f"Output must be in target variant '{target_variant}' only.")
+        if style_missing and tone_style == "floptropica":
+            correction_rules.append(
+                "Include at least 2 fitting FLOPTROPICA emojis (for example from ⭐ 🌟 ✨ 💅 💋 🥑 🙄 👀)."
+            )
         retry_payload = {
             "model": "deepseek-chat",
             "messages": [
@@ -183,7 +185,7 @@ def call_deepseek(text, source_language, target_variant, tone_style):
                     "role": "system",
                     "content": (
                         f"{system_prompt} This is a correction pass. "
-                        f"The output must be in target variant '{target_variant}' only."
+                        + " ".join(correction_rules)
                     ),
                 },
                 {"role": "user", "content": user_prompt},
