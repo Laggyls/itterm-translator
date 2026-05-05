@@ -1,38 +1,46 @@
+import os  # Standard library to read environment variables
 from flask import Flask, request, jsonify
-from opencc import OpenCC
-from deep_translator import GoogleTranslator
 from flask_cors import CORS
+import requests
 
-# Vercel looks for the variable named 'app'
 app = Flask(__name__)
 CORS(app)
 
-def localize_text(text, region):
-    if region == 'TW':
-        return OpenCC('s2twp').convert(text)
-    elif region == 'HK':
-        return OpenCC('s2hk').convert(text)
-    return text
+# Vercel will automatically inject the key into 'os.environ'
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
 
-@app.route('/')
-def home():
-    return "IT Translator API is running! Use /api/translate for POST requests."
+def get_deepseek_translation(text, region):
+    # If the key is missing, this will help you debug
+    if not DEEPSEEK_API_KEY:
+        return "Error: API Key not found in Environment Variables."
 
-@app.route('/api/translate', methods=['POST'])
-def translate():
-    # ... your existing translation code ...
-    try:
-        data = request.json
-        text = data.get('text', '')
-        region = data.get('region', 'CN')
+    system_prompt = (
+        f"You are a professional IT translator. Translate the input to Chinese "
+        f"specifically for the {region} region. "
+        "Use local IT terminology (e.g., 'Software' -> '軟體' for TW, '软件' for CN). "
+        "For Hong Kong, use a professional hybrid style if appropriate."
+    )
+    
+    url = "https://api.deepseek.com/v1/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {DEEPSEEK_API_KEY}"
+    }
+    data = {
+        "model": "deepseek-chat",
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": text}
+        ],
+        "temperature": 0.3
+    }
+    
+    response = requests.post(url, json=data, headers=headers)
+    
+    # Simple error handling for the API response
+    if response.status_code != 200:
+        return f"DeepSeek API Error: {response.text}"
         
-        base = GoogleTranslator(source='auto', target='zh-CN').translate(text)
-        result = localize_text(base, region)
-        
-        return jsonify({"translated": result})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return response.json()['choices'][0]['message']['content']
 
-# This is required for local testing, but Vercel uses the 'app' variable above
-if __name__ == "__main__":
-    app.run()
+# ... (Keep the rest of your routes the same)
