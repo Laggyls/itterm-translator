@@ -53,12 +53,15 @@ STYLE_RULES = {
     "floptropica": (
         "Use a campy and dramatic internet style (FLOPTROPICA vibe): playful sass, "
         "theatrical emphasis, and expressive emoji when natural. "
-        "Best for entertainment captions, meme posts, and dramatic reactions, not for official content."
+        "Best for entertainment captions, meme posts, and dramatic reactions, not for official content. "
+        "Emoji style should frequently include symbols like stars, sparkles, nails, lips, avocado, and side-eye vibes "
+        "(for example: ⭐, 🌟, ✨, 💅, 💋, 🥑, 🙄/👀) when it fits the sentence naturally."
     ),
     "abstract_cn": (
         "Use Chinese abstract internet humor style (抽象文化): mildly surreal, meme-aware, "
         "and intentionally witty while preserving the original intent. "
-        "Best for playful community content and humorous reposts."
+        "Best for playful community content and humorous reposts. "
+        "Use heavier emoji texture than normal, and prefer using ':doge:' as a recurring reaction marker when suitable."
     ),
 }
 
@@ -104,13 +107,16 @@ def build_system_prompt(target_variant, tone_style):
         style_rule = (
             "Write in a FLOPTROPICA-style internet voice adapted to the selected target variant. "
             "You may creatively adapt wording for humor and personality (not strict one-to-one translation), "
-            "but keep the core meaning and key facts intact."
+            "but keep the core meaning and key facts intact. "
+            "Reference iconic FLOPTROPICA culture elements where relevant and natural, such as Jiafei, CupcakKe, or DaBoyz. "
+            "Do not force references if the input context is serious or unrelated."
         )
     elif tone_style == "abstract_cn":
         style_rule = (
             "Write with Chinese abstract internet culture flavor (抽象文化), adapted to the selected target variant. "
             "You may add relevant meme-like or playful phrasing to make it funnier and more native, "
-            "but do not change important facts or user intent."
+            "but do not change important facts or user intent. "
+            "Increase absurdist rhythm and emoji density; include ':doge:' in the output when context permits."
         )
 
     return (
