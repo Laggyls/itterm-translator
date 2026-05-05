@@ -6,15 +6,22 @@ async function handleTranslate() {
     resultBox.innerText = "Processing...";
 
     try {
-        // REPLACE with your actual Vercel URL after deployment
-        const response = await fetch('https://your-project-name.vercel.app/api/translate', {
+        // Paste your Vercel URL here, ensuring it ends with /api/translate
+        const response = await fetch('https://itterm-translator-l06kahlm6-laggyls-projects.vercel.app/api/translate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text, region })
         });
+        
         const data = await response.json();
-        resultBox.innerText = data.translated;
+        
+        if (data.error) {
+            resultBox.innerText = "Error: " + data.error;
+        } else {
+            resultBox.innerText = data.translated;
+        }
     } catch (err) {
-        resultBox.innerText = "Error connecting to backend.";
+        resultBox.innerText = "Error connecting to backend. Check console for details.";
+        console.error(err);
     }
 }

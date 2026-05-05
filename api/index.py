@@ -14,8 +14,13 @@ def localize_text(text, region):
         return OpenCC('s2hk').convert(text)
     return text
 
+@app.route('/')
+def home():
+    return "IT Translator API is running! Use /api/translate for POST requests."
+
 @app.route('/api/translate', methods=['POST'])
 def translate():
+    # ... your existing translation code ...
     try:
         data = request.json
         text = data.get('text', '')
