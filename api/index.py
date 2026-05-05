@@ -31,12 +31,34 @@ TARGET_VARIANT_RULES = {
 }
 
 STYLE_RULES = {
-    "natural": "Keep the tone natural and neutral.",
-    "formal": "Use a formal and professional tone.",
-    "friendly": "Use a warm and friendly tone.",
+    "natural": (
+        "Use a neutral everyday tone suitable for general communication. "
+        "Keep wording clear, direct, and culturally natural without sounding too casual or too stiff."
+    ),
+    "formal": (
+        "Use a formal, authoritative register suitable for official notices, workplace announcements, "
+        "policy statements, legal/administrative communication, or academic writing. "
+        "Prioritize precision, structure, and professionalism over casual expression."
+    ),
+    "friendly": (
+        "Use a warm and approachable conversational tone intended to soften phrasing. "
+        "Suitable for customer support, peer-to-peer chat, community replies, and polite requests. "
+        "Keep it respectful, empathetic, and easy to read."
+    ),
     "social": (
-        "Use a social media style. Emoji are allowed if they fit naturally, "
-        "but do not overuse them."
+        "Use a social-media-native style for public posts/comments. "
+        "Suitable for short-form platforms and community discussions. "
+        "Allow light emoji and internet phrasing where natural, but keep readability and avoid spammy emoji."
+    ),
+    "floptropica": (
+        "Use a campy and dramatic internet style (FLOPTROPICA vibe): playful sass, "
+        "theatrical emphasis, and expressive emoji when natural. "
+        "Best for entertainment captions, meme posts, and dramatic reactions, not for official content."
+    ),
+    "abstract_cn": (
+        "Use Chinese abstract internet humor style (抽象文化): mildly surreal, meme-aware, "
+        "and intentionally witty while preserving the original intent. "
+        "Best for playful community content and humorous reposts."
     ),
 }
 
@@ -48,19 +70,19 @@ SOCIAL_STYLE_BY_VARIANT = {
     ),
     "zh_cn": (
         "Write like a native Mainland China social media user (Bilibili/Weibo/Xiaohongshu style): "
-        "internet-native wording, natural slang where appropriate, and fitting emoji usage."
+        "internet-native wording, natural slang where appropriate, and fitting emoji usage only when applicable."
     ),
     "zh_tw": (
         "Write like a native Taiwan social media user (Threads/Dcard/PTT style): "
-        "Taiwan online expressions, natural cadence, and fitting emoji usage."
+        "Taiwan online expressions, natural cadence, and fitting emoji usage only when applicable."
     ),
     "zh_hk_written": (
         "Write like a native Hong Kong online writer using written Chinese (Threads/local forums style): "
-        "HK-preferred wording, concise flow, and fitting emoji usage."
+        "HK-preferred wording, concise flow, and fitting emoji usage, perfect for social media post that target Hong Kong audience."
     ),
     "zh_hk_spoken": (
         "Write like a native Hong Kong netizen in Cantonese (LIHKG/Threads style): "
-        "authentic colloquial Cantonese wording and particles, with natural emoji usage."
+        "authentic colloquial Cantonese wording and particles, with natural emoji usage only when applicable."
     ),
 }
 
@@ -78,6 +100,18 @@ def build_system_prompt(target_variant, tone_style):
     style_rule = STYLE_RULES.get(tone_style, STYLE_RULES["natural"])
     if tone_style == "social":
         style_rule = SOCIAL_STYLE_BY_VARIANT.get(target_variant, style_rule)
+    elif tone_style == "floptropica":
+        style_rule = (
+            "Write in a FLOPTROPICA-style internet voice adapted to the selected target variant. "
+            "You may creatively adapt wording for humor and personality (not strict one-to-one translation), "
+            "but keep the core meaning and key facts intact."
+        )
+    elif tone_style == "abstract_cn":
+        style_rule = (
+            "Write with Chinese abstract internet culture flavor (抽象文化), adapted to the selected target variant. "
+            "You may add relevant meme-like or playful phrasing to make it funnier and more native, "
+            "but do not change important facts or user intent."
+        )
 
     return (
         "You are a high-accuracy bilingual translator for English and Chinese variants. "
@@ -85,7 +119,7 @@ def build_system_prompt(target_variant, tone_style):
         "The user's selected target variant is mandatory and must be followed strictly. "
         "Never keep the output in the source language unless the target variant is that language. "
         f"{variant_rule} {style_rule} "
-        "Output only the translated text without explanations."
+        "Do not invent new factual claims. Output only the translated text without explanations."
     )
 
 
