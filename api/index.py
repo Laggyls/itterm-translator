@@ -122,11 +122,15 @@ def has_linkedin_paragraph_style(text):
     return len(paragraphs) >= len(sentences) - 1
 
 
+def contains_emoji(text):
+    return bool(re.search(r"[\U0001F300-\U0001FAFF\u2600-\u27BF]", text))
+
+
 def has_required_style_markers(text, tone_style):
     if tone_style == "floptropica":
         return has_floptropica_sentence_emojis(text)
     if tone_style == "linkedin":
-        return has_linkedin_paragraph_style(text)
+        return has_linkedin_paragraph_style(text) and not contains_emoji(text)
     return True
 
 
@@ -144,13 +148,17 @@ def build_system_prompt(target_variant, tone_style):
             "Do not force references if the input context is serious or unrelated. "
             "Distribute emoji across sentences: ideally add one fitting emoji near the end of each sentence, "
             "instead of placing all emojis only at the very end. "
-            "Be more bizarre, vivid, and context-rich than standard translation while preserving intent."
+            "Be more bizarre, vivid, and context-rich than standard translation while preserving intent. "
+            "For Chinese outputs, ensure native Chinese internet flavor by target variant: "
+            "Mainland should feel like Bilibili/Weibo meme speech, Taiwan should feel like Dcard/PTT/Threads wording, "
+            "Hong Kong written should reflect HK online written style, and Hong Kong spoken should use authentic Cantonese netizen tone."
         )
     elif tone_style == "linkedin":
         style_rule = (
             "Rewrite in LinkedIn-ready style for portfolio usage. "
             "Transform simple lines into professional, results-focused statements that imply capability and initiative. "
-            "Use one sentence per paragraph with explicit skill language and polished tone."
+            "Use one sentence per paragraph with explicit skill language and polished tone. "
+            "Do not use emojis, emoticons, or internet slang."
         )
 
     return (
@@ -222,7 +230,7 @@ def call_deepseek(text, source_language, target_variant, tone_style):
             )
         if style_missing and tone_style == "linkedin":
             correction_rules.append(
-                "Reformat as LinkedIn style with one sentence per paragraph and stronger professional, skill-explicit phrasing."
+                "Reformat as LinkedIn style with one sentence per paragraph, stronger professional skill-explicit phrasing, and strictly no emojis."
             )
         retry_payload = {
             "model": "deepseek-chat",
