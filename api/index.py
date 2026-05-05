@@ -141,6 +141,22 @@ def contains_emoji(text):
     return bool(re.search(r"[\U0001F300-\U0001FAFF\u2600-\u27BF]", text))
 
 
+def has_hk_style_markers(text):
+    hk_patterns = [
+        r"佢[哋地]?",
+        r"而家",
+        r"喺",
+        r"咗",
+        r"冇",
+        r"係咪",
+        r"點解",
+        r"咁樣",
+        r"嘅",
+        r"啦",
+    ]
+    return any(re.search(pattern, text) for pattern in hk_patterns)
+
+
 def has_required_style_markers(text, tone_style, target_variant):
     if tone_style == "floptropica":
         return (
@@ -188,6 +204,8 @@ def build_system_prompt(target_variant, tone_style):
         "Preserve meaning, context, and key terms. "
         "The user's selected target variant is mandatory and must be followed strictly. "
         "Never keep the output in the source language unless the target variant is that language. "
+        "If target is zh_tw, avoid Hong Kong Cantonese markers and use Taiwan-standard written Traditional Chinese. "
+        "Do not let place names mentioned in source text override the requested target variant. "
         f"{variant_rule} {style_rule} "
         "Do not invent new factual claims. Output only the translated text without explanations."
     )
@@ -244,11 +262,17 @@ def call_deepseek(text, source_language, target_variant, tone_style):
     mismatch = (wants_chinese(target_variant) and not contains_cjk(translated)) or (
         target_variant == "en_us" and contains_cjk(translated)
     )
+    variant_drift = target_variant == "zh_tw" and has_hk_style_markers(translated)
     style_missing = not has_required_style_markers(translated, tone_style, target_variant)
-    if mismatch or style_missing:
+    if mismatch or style_missing or variant_drift:
         correction_rules = []
         if mismatch:
             correction_rules.append(f"Output must be in target variant '{target_variant}' only.")
+        if variant_drift:
+            correction_rules.append(
+                "Detected Hong Kong/Cantonese wording. Rewrite into Taiwan-standard written Traditional Chinese (zh_tw) "
+                "and avoid Cantonese-specific particles/phrasing."
+            )
         if style_missing and tone_style == "floptropica":
             correction_rules.append(
                 "Reformat in full FLOPTROPICA mode: prioritize vibe over strict grammar, put emoji in EVERY sentence with some sentences having 2 emojis "
