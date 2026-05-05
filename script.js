@@ -7,7 +7,7 @@ async function handleTranslate() {
 
     try {
         // Paste your Vercel URL here, ensuring it ends with /api/translate
-        const response = await fetch('https://itterm-translator-l06kahlm6-laggyls-projects.vercel.app/api/translate', {
+        const response = await fetch('https://itterm-translator.vercel.app//api/translate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text, region })
