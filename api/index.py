@@ -9,6 +9,7 @@ CORS(app)
 
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
 DEEPSEEK_URL = "https://api.deepseek.com/v1/chat/completions"
+FLOPTROPICA_EMOJI_RE = re.compile(r"[⭐🌟✨💅💋🥑🙄👀💖💘🔥👑🎀🤍🫦💫🤭💃🕺😮‍💨💅🏽]")
 
 TARGET_VARIANT_RULES = {
     "en_us": "Translate into natural English. Keep the meaning accurate and clear.",
@@ -107,11 +108,12 @@ def has_floptropica_sentence_emojis(text):
     sentences = split_sentences(text)
     if not sentences:
         return False
-    emoji_pat = re.compile(r"[⭐🌟✨💅💋🥑🙄👀💖💘🔥👑🎀🤍🫦💫]")
-    # Require emoji in most sentences, not only one emoji dump at the end.
-    sentences_with_emoji = sum(1 for s in sentences if emoji_pat.search(s))
-    required = max(1, (len(sentences) + 1) // 2)
-    return sentences_with_emoji >= required
+    # Require emoji in every sentence plus a few sentences with 2 emojis for stronger vibe.
+    sentences_with_emoji = sum(1 for s in sentences if FLOPTROPICA_EMOJI_RE.search(s))
+    if sentences_with_emoji < len(sentences):
+        return False
+    sentences_with_two = sum(1 for s in sentences if len(FLOPTROPICA_EMOJI_RE.findall(s)) >= 2)
+    return sentences_with_two >= max(1, len(sentences) // 3)
 
 
 def has_floptropica_slang(text):
@@ -119,6 +121,12 @@ def has_floptropica_slang(text):
     sentence_count = len(split_sentences(text))
     required = 2 if sentence_count >= 4 else 1
     return len(hits) >= required
+
+
+def has_floptropica_caps_english(text, target_variant):
+    if target_variant != "en_us":
+        return True
+    return bool(re.search(r"\b[A-Z]{4,}\b", text))
 
 
 def has_linkedin_paragraph_style(text):
@@ -133,9 +141,13 @@ def contains_emoji(text):
     return bool(re.search(r"[\U0001F300-\U0001FAFF\u2600-\u27BF]", text))
 
 
-def has_required_style_markers(text, tone_style):
+def has_required_style_markers(text, tone_style, target_variant):
     if tone_style == "floptropica":
-        return has_floptropica_sentence_emojis(text) and has_floptropica_slang(text)
+        return (
+            has_floptropica_sentence_emojis(text)
+            and has_floptropica_slang(text)
+            and has_floptropica_caps_english(text, target_variant)
+        )
     if tone_style == "linkedin":
         return has_linkedin_paragraph_style(text) and not contains_emoji(text)
     return True
@@ -157,6 +169,7 @@ def build_system_prompt(target_variant, tone_style):
             "Distribute emoji across sentences: frequently add 1-2 fitting emojis near sentence endings, "
             "instead of placing all emojis only at the very end. "
             "Use signature slang like SLAYYYY, Poosay, pookie, Queen, diva naturally in the output. "
+            "If target output is English, include expressive FULL-CAPS stress words (for example: SLAYYYY, ICONIC, MAJOR, LITERALLY). "
             "Be more bizarre, vivid, and context-rich than standard translation while preserving intent. "
             "For Chinese outputs, ensure native Chinese internet flavor by target variant: "
             "Mainland should feel like Bilibili/Weibo meme speech, Taiwan should feel like Dcard/PTT/Threads wording, "
@@ -231,15 +244,16 @@ def call_deepseek(text, source_language, target_variant, tone_style):
     mismatch = (wants_chinese(target_variant) and not contains_cjk(translated)) or (
         target_variant == "en_us" and contains_cjk(translated)
     )
-    style_missing = not has_required_style_markers(translated, tone_style)
+    style_missing = not has_required_style_markers(translated, tone_style, target_variant)
     if mismatch or style_missing:
         correction_rules = []
         if mismatch:
             correction_rules.append(f"Output must be in target variant '{target_variant}' only.")
         if style_missing and tone_style == "floptropica":
             correction_rules.append(
-                "Reformat in full FLOPTROPICA mode: prioritize vibe over strict grammar, add 1-2 fitting emojis near the end of most sentences "
-                "(not a single emoji cluster at the end), and include signature slang such as SLAYYYY, Poosay, pookie, Queen, diva."
+                "Reformat in full FLOPTROPICA mode: prioritize vibe over strict grammar, put emoji in EVERY sentence with some sentences having 2 emojis "
+                "(not a single emoji cluster at the end), and include signature slang such as SLAYYYY, Poosay, pookie, Queen, diva. "
+                "If output language is English, include at least one FULL-CAPS stress word like SLAYYYY, ICONIC, MAJOR, or LITERALLY."
             )
         if style_missing and tone_style == "linkedin":
             correction_rules.append(
