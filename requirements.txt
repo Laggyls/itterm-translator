@@ -1,0 +1,5 @@
+flask
+flask-cors
+opencc-python-reimplemented
+deep-translator
+requests
