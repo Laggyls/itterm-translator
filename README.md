@@ -9,12 +9,12 @@ This project is a translator website powered by DeepSeek API.
 
 - English <-> Chinese translation 中英文雙向翻譯
 - Chinese output variants 中文輸出變體：
-  - Mainland China 中國大陸 (`zh_cn`)
+  - Mainland China 中国大陆 (`zh_cn`)
   - Taiwan 台灣 (`zh_tw`)
   - Hong Kong Written Chinese 香港書面中文 (`zh_hk_written`)
   - Hong Kong Spoken Cantonese 香港口語粵語 (`zh_hk_spoken`)
-- Style options 風格選項：natural, formal, friendly, social (emoji-friendly)
-- Auto detect source language 自動偵測來源語言
+- Style options 風格選項：natural, formal, friendly, social, FLOPTROPICA💅, LinkedIn
+- Auto detect source language 自動偵測來源語言 (But it's better to choose the source language 但手動選擇輸入語言效果好點)
 
 ## Architecture 架構
 
