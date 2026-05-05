@@ -1,48 +1,25 @@
-## EN/ZH Variant Translator (DeepSeek)
+## Chinese(s) Translator 中譯中翻譯器
 
-This project is a web translator that supports:
-- English <-> Chinese translation
-- Chinese output variants:
-  - Mainland China (`zh_cn`)
-  - Taiwan (`zh_tw`)
-  - Hong Kong Written Chinese (`zh_hk_written`)
-  - Hong Kong Spoken Cantonese (`zh_hk_spoken`)
-- Style options: natural, formal, friendly, social (emoji-friendly)
+Speak Like A Native Chinese 像中文母語者一樣說話
 
-## Architecture
+This project is a translator website powered by DeepSeek API.  
+本專案是使用 DeepSeek API 的翻譯網站。
 
-- Frontend: static site (`index.html`, `style.css`, `script.js`) for GitHub Pages
-- Backend: Flask API (`api/index.py`) deployed on Vercel to keep your DeepSeek key secure
+### Features 功能
 
-## 1) Deploy backend (Vercel)
+- English <-> Chinese translation 中英文雙向翻譯
+- Chinese output variants 中文輸出變體：
+  - Mainland China 中國大陸 (`zh_cn`)
+  - Taiwan 台灣 (`zh_tw`)
+  - Hong Kong Written Chinese 香港書面中文 (`zh_hk_written`)
+  - Hong Kong Spoken Cantonese 香港口語粵語 (`zh_hk_spoken`)
+- Style options 風格選項：natural, formal, friendly, social (emoji-friendly)
+- Auto detect source language 自動偵測來源語言
 
-1. Push this repository to GitHub.
-2. Import the repo in Vercel.
-3. In Vercel Project Settings -> Environment Variables, set:
-   - `DEEPSEEK_API_KEY=your_key_here`
-4. Deploy.
-5. Copy your backend URL, for example:
-   - `https://your-backend-domain.vercel.app`
+## Architecture 架構
 
-## 2) Configure frontend API URL
-
-Edit `script.js`:
-- Change `API_BASE_URL` to your Vercel domain.
-
-Example:
-`const API_BASE_URL = "https://your-backend-domain.vercel.app";`
-
-## 3) Deploy frontend (GitHub Pages)
-
-Since this is a static frontend:
-1. In GitHub, go to repository Settings -> Pages.
-2. Set Source to `Deploy from a branch`.
-3. Choose `main` branch and root (`/`).
-4. Save, then open the Pages URL.
-
-## API Request Format
-
-`POST /api/translate`
+- Frontend 前端：static site (`index.html`, `style.css`, `script.js`) hosted on GitHub Pages
+- Backend 後端：Flask API (`api/index.py`) deployed on Vercel to protect `DEEPSEEK_API_KEY`
 
 ```json
 {
@@ -52,4 +29,9 @@ Since this is a static frontend:
   "tone_style": "friendly"
 }
 ```
+
+## Credits 致謝
+
+This machine is created with the assistance of Cursor.  
+本專案在 Cursor 的協助下完成網站開發。
 

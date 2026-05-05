@@ -13,12 +13,12 @@ const elements = {
 async function handleTranslate() {
     const text = elements.inputText.value.trim();
     if (!text) {
-        elements.statusText.textContent = "Please enter text first.";
+        elements.statusText.textContent = "Please enter text first. 請先輸入內容。";
         return;
     }
 
     elements.translateButton.disabled = true;
-    elements.statusText.textContent = "Translating...";
+    elements.statusText.textContent = "Translating... 翻譯中...";
     elements.resultBox.textContent = "";
 
     try {
@@ -35,13 +35,13 @@ async function handleTranslate() {
 
         const data = await response.json();
         if (!response.ok || data.error) {
-            throw new Error(data.error || "Translation failed.");
+            throw new Error(data.error || "Translation failed. 翻譯失敗。");
         }
 
         elements.resultBox.textContent = data.translated;
-        elements.statusText.textContent = "Done.";
+        elements.statusText.textContent = "Done. 完成。";
     } catch (error) {
-        elements.statusText.textContent = "Translation failed.";
+        elements.statusText.textContent = "Translation failed. 翻譯失敗。";
         elements.resultBox.textContent = error.message;
     } finally {
         elements.translateButton.disabled = false;

@@ -3,56 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DeepSeek EN/ZH Translator</title>
+    <title>Chinese(s) Translator 中譯中翻譯器</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <main class="container">
-        <h1>English-Chinese Translator</h1>
-        <p class="subtitle">Mainland China, Taiwan, Hong Kong Written Chinese, and Hong Kong Spoken Cantonese</p>
+        <h1>Chinese(s) Translator 中譯中翻譯器</h1>
+        <p class="subtitle">Speak Like A Native Chinese 像華語母語者一樣說話</p>
 
-        <label for="inputText">Input Text</label>
-        <textarea id="inputText" placeholder="Enter English or Chinese text..."></textarea>
+        <label for="inputText">Input Text 輸入內容</label>
+        <textarea id="inputText" placeholder="Enter English or Chinese text... 請輸入英文或中文內容..."></textarea>
 
         <div class="controls-grid">
             <div class="control">
-                <label for="sourceLanguage">Source Language</label>
+                <label for="sourceLanguage">Source Language 來源語言</label>
                 <select id="sourceLanguage">
-                    <option value="auto">Auto Detect</option>
-                    <option value="en">English</option>
-                    <option value="zh">Chinese</option>
+                    <option value="auto">Auto Detect 自動偵測</option>
+                    <option value="en">English 英文</option>
+                    <option value="zh">Chinese 中文</option>
                 </select>
             </div>
 
             <div class="control">
-                <label for="targetVariant">Target Variant</label>
+                <label for="targetVariant">Target Variant 目標語言變體</label>
                 <select id="targetVariant">
-                    <option value="en_us">English (Natural)</option>
-                    <option value="zh_cn">Chinese - Mainland China (简体)</option>
-                    <option value="zh_tw">Chinese - Taiwan (繁體)</option>
-                    <option value="zh_hk_written">Chinese - Hong Kong Written (繁體書面語)</option>
-                    <option value="zh_hk_spoken">Chinese - Hong Kong Spoken Cantonese (口語粵語)</option>
+                    <option value="en_us">English (Natural) 英文（自然）</option>
+                    <option value="zh_cn">Chinese - Mainland China (简体) 中文 - 中國大陸（简体）</option>
+                    <option value="zh_tw">Chinese - Taiwan (繁體) 中文 - 台灣（繁體）</option>
+                    <option value="zh_hk_written">Chinese - Hong Kong Written (繁體書面語) 中文 - 香港書面語（繁體）</option>
+                    <option value="zh_hk_spoken">Chinese - Hong Kong Spoken Cantonese (口語粵語) 中文 - 香港口語粵語</option>
                 </select>
             </div>
 
             <div class="control">
-                <label for="toneStyle">Tone / Style</label>
+                <label for="toneStyle">Tone / Style 語氣與風格</label>
                 <select id="toneStyle">
-                    <option value="natural">Natural</option>
-                    <option value="formal">Formal</option>
-                    <option value="friendly">Friendly</option>
-                    <option value="social">Social / Emoji-friendly</option>
+                    <option value="natural">Natural 自然</option>
+                    <option value="formal">Formal 正式</option>
+                    <option value="friendly">Friendly 親切</option>
+                    <option value="social">Social / Emoji-friendly 社群口吻／表情友善</option>
                 </select>
             </div>
         </div>
 
-        <button id="translateButton" type="button">Translate</button>
-        <p id="statusText" class="status">Ready.</p>
+        <button id="translateButton" type="button">Translate 翻譯</button>
+        <p id="statusText" class="status">Ready. 準備就緒。</p>
 
         <section>
-            <h2>Output</h2>
-            <div id="resultBox" class="output">Your translation appears here.</div>
+            <h2>Output 輸出結果</h2>
+            <div id="resultBox" class="output">Your translation appears here. 翻譯結果將顯示在這裡。</div>
         </section>
+
+        <footer class="site-footer">
+            <p>Laggyls © 2026</p>
+            <p>This website is created with the assistance of Cursor. 本網站在 Cursor 的協助下建立。</p>
+        </footer>
     </main>
 
     <script src="script.js"></script>
