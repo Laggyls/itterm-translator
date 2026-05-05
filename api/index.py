@@ -114,6 +114,13 @@ def has_floptropica_sentence_emojis(text):
     return sentences_with_emoji >= required
 
 
+def has_floptropica_slang(text):
+    hits = re.findall(r"\b(slay+y*|poosay|pookie|queen|diva)\b", text, flags=re.IGNORECASE)
+    sentence_count = len(split_sentences(text))
+    required = 2 if sentence_count >= 4 else 1
+    return len(hits) >= required
+
+
 def has_linkedin_paragraph_style(text):
     sentences = split_sentences(text)
     if len(sentences) <= 1:
@@ -128,7 +135,7 @@ def contains_emoji(text):
 
 def has_required_style_markers(text, tone_style):
     if tone_style == "floptropica":
-        return has_floptropica_sentence_emojis(text)
+        return has_floptropica_sentence_emojis(text) and has_floptropica_slang(text)
     if tone_style == "linkedin":
         return has_linkedin_paragraph_style(text) and not contains_emoji(text)
     return True
@@ -142,12 +149,14 @@ def build_system_prompt(target_variant, tone_style):
     elif tone_style == "floptropica":
         style_rule = (
             "Write in a FLOPTROPICA-style internet voice adapted to the selected target variant. "
+            "Prioritize full FLOPTROPICA vibe over strict grammar and spelling perfection. "
             "You may creatively adapt wording for humor and personality (not strict one-to-one translation), "
             "but keep the core meaning and key facts intact. "
             "Reference iconic FLOPTROPICA culture elements where relevant and natural, such as Jiafei, CupcakKe, or DaBoyz. "
             "Do not force references if the input context is serious or unrelated. "
-            "Distribute emoji across sentences: ideally add one fitting emoji near the end of each sentence, "
+            "Distribute emoji across sentences: frequently add 1-2 fitting emojis near sentence endings, "
             "instead of placing all emojis only at the very end. "
+            "Use signature slang like SLAYYYY, Poosay, pookie, Queen, diva naturally in the output. "
             "Be more bizarre, vivid, and context-rich than standard translation while preserving intent. "
             "For Chinese outputs, ensure native Chinese internet flavor by target variant: "
             "Mainland should feel like Bilibili/Weibo meme speech, Taiwan should feel like Dcard/PTT/Threads wording, "
@@ -187,13 +196,17 @@ def call_deepseek(text, source_language, target_variant, tone_style):
         f"{text}"
     )
 
+    temperature = 0.25
+    if tone_style == "floptropica":
+        temperature = 0.75
+
     payload = {
         "model": "deepseek-chat",
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ],
-        "temperature": 0.25,
+        "temperature": temperature,
     }
     headers = {
         "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
@@ -225,8 +238,8 @@ def call_deepseek(text, source_language, target_variant, tone_style):
             correction_rules.append(f"Output must be in target variant '{target_variant}' only.")
         if style_missing and tone_style == "floptropica":
             correction_rules.append(
-                "Reformat in FLOPTROPICA style with sentence-level emoji distribution: add one fitting emoji near the end of most sentences, "
-                "not just a single emoji cluster at the end. Use symbols like ⭐ 🌟 ✨ 💅 💋 🥑 🙄 👀 💖 💘 🔥 👑 🎀."
+                "Reformat in full FLOPTROPICA mode: prioritize vibe over strict grammar, add 1-2 fitting emojis near the end of most sentences "
+                "(not a single emoji cluster at the end), and include signature slang such as SLAYYYY, Poosay, pookie, Queen, diva."
             )
         if style_missing and tone_style == "linkedin":
             correction_rules.append(
