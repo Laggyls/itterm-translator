@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IT Terminology Translator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>IT Region-Aware Translator</h1>
+        <textarea id="inputText" placeholder="Enter English or Chinese text..."></textarea>
+        
+        <div class="controls">
+            <select id="regionSelect">
+                <option value="CN">Mainland China (Simplified)</option>
+                <option value="TW">Taiwan (Traditional + Phrase)</option>
+                <option value="HK">Hong Kong (Traditional/Efficiency)</option>
+            </select>
+            <button onclick="handleTranslate()">Translate</button>
+        </div>
+
+        <div id="resultBox" class="output"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
