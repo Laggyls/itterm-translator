@@ -54,8 +54,14 @@ STYLE_RULES = {
         "Use a campy and dramatic internet style (FLOPTROPICA vibe): playful sass, "
         "theatrical emphasis, and expressive emoji when natural. "
         "Best for entertainment captions, meme posts, and dramatic reactions, not for official content. "
-        "Emoji style should frequently include symbols like stars, sparkles, nails, lips, avocado, and side-eye vibes "
-        "(for example: ⭐, 🌟, ✨, 💅, 💋, 🥑, 🙄/👀) when it fits the sentence naturally."
+        "Emoji style should frequently include symbols like stars, sparkles, nails, lips, avocado, side-eye, hearts, flames, and glam vibes "
+        "(for example: ⭐, 🌟, ✨, 💅, 💋, 🥑, 🙄, 👀, 💖, 💘, 🔥, 👑, 🎀) when it fits the sentence naturally. "
+        "Allow bizarre but coherent creative additions for context and humor, as long as core meaning and facts remain accurate."
+    ),
+    "linkedin": (
+        "Use a polished LinkedIn professional voice suitable for portfolio and personal branding. "
+        "Expand simple statements into high-impact, outcome-oriented phrasing that highlights explicit skills, ownership, and value. "
+        "Format with one sentence per paragraph (line break between sentences), concise but professional."
     ),
 }
 
@@ -101,16 +107,26 @@ def has_floptropica_sentence_emojis(text):
     sentences = split_sentences(text)
     if not sentences:
         return False
-    emoji_pat = re.compile(r"[⭐🌟✨💅💋🥑🙄👀]")
+    emoji_pat = re.compile(r"[⭐🌟✨💅💋🥑🙄👀💖💘🔥👑🎀🤍🫦💫]")
     # Require emoji in most sentences, not only one emoji dump at the end.
     sentences_with_emoji = sum(1 for s in sentences if emoji_pat.search(s))
     required = max(1, (len(sentences) + 1) // 2)
     return sentences_with_emoji >= required
 
 
+def has_linkedin_paragraph_style(text):
+    sentences = split_sentences(text)
+    if len(sentences) <= 1:
+        return True
+    paragraphs = [p for p in text.split("\n") if p.strip()]
+    return len(paragraphs) >= len(sentences) - 1
+
+
 def has_required_style_markers(text, tone_style):
     if tone_style == "floptropica":
         return has_floptropica_sentence_emojis(text)
+    if tone_style == "linkedin":
+        return has_linkedin_paragraph_style(text)
     return True
 
 
@@ -127,7 +143,14 @@ def build_system_prompt(target_variant, tone_style):
             "Reference iconic FLOPTROPICA culture elements where relevant and natural, such as Jiafei, CupcakKe, or DaBoyz. "
             "Do not force references if the input context is serious or unrelated. "
             "Distribute emoji across sentences: ideally add one fitting emoji near the end of each sentence, "
-            "instead of placing all emojis only at the very end."
+            "instead of placing all emojis only at the very end. "
+            "Be more bizarre, vivid, and context-rich than standard translation while preserving intent."
+        )
+    elif tone_style == "linkedin":
+        style_rule = (
+            "Rewrite in LinkedIn-ready style for portfolio usage. "
+            "Transform simple lines into professional, results-focused statements that imply capability and initiative. "
+            "Use one sentence per paragraph with explicit skill language and polished tone."
         )
 
     return (
@@ -195,7 +218,11 @@ def call_deepseek(text, source_language, target_variant, tone_style):
         if style_missing and tone_style == "floptropica":
             correction_rules.append(
                 "Reformat in FLOPTROPICA style with sentence-level emoji distribution: add one fitting emoji near the end of most sentences, "
-                "not just a single emoji cluster at the end. Use symbols like ⭐ 🌟 ✨ 💅 💋 🥑 🙄 👀."
+                "not just a single emoji cluster at the end. Use symbols like ⭐ 🌟 ✨ 💅 💋 🥑 🙄 👀 💖 💘 🔥 👑 🎀."
+            )
+        if style_missing and tone_style == "linkedin":
+            correction_rules.append(
+                "Reformat as LinkedIn style with one sentence per paragraph and stronger professional, skill-explicit phrasing."
             )
         retry_payload = {
             "model": "deepseek-chat",
