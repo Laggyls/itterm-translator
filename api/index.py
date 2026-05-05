@@ -3,6 +3,10 @@ import re
 import requests
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+try:
+    from opencc import OpenCC
+except ImportError:  # pragma: no cover
+    OpenCC = None
 
 app = Flask(__name__)
 CORS(app)
@@ -10,6 +14,7 @@ CORS(app)
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
 DEEPSEEK_URL = "https://api.deepseek.com/v1/chat/completions"
 FLOPTROPICA_EMOJI_RE = re.compile(r"[⭐🌟✨💅💋🥑🙄👀💖💘🔥👑🎀🤍🫦💫🤭💃🕺😮‍💨💅🏽]")
+OPENCC_S2T = OpenCC("s2t") if OpenCC else None
 
 TARGET_VARIANT_RULES = {
     "en_us": "Translate into natural English. Keep the meaning accurate and clear.",
@@ -157,6 +162,17 @@ def has_hk_style_markers(text):
     return any(re.search(pattern, text) for pattern in hk_patterns)
 
 
+def has_simplified_drift(text):
+    if not OPENCC_S2T:
+        return False
+    return OPENCC_S2T.convert(text) != text
+
+
+def has_excessive_cantonese_particles(text):
+    markers = re.findall(r"(嘅|喺|咗|冇|啦|囉|咩|呀|佢|哋)", text)
+    return len(markers) >= 3
+
+
 def has_required_style_markers(text, tone_style, target_variant):
     if tone_style == "floptropica":
         return (
@@ -263,8 +279,11 @@ def call_deepseek(text, source_language, target_variant, tone_style):
         target_variant == "en_us" and contains_cjk(translated)
     )
     variant_drift = target_variant == "zh_tw" and has_hk_style_markers(translated)
+    script_drift = target_variant in {"zh_tw", "zh_hk_written", "zh_hk_spoken"} and has_simplified_drift(translated)
+    hk_spoken_missing = target_variant == "zh_hk_spoken" and not has_hk_style_markers(translated)
+    hk_written_too_colloquial = target_variant == "zh_hk_written" and has_excessive_cantonese_particles(translated)
     style_missing = not has_required_style_markers(translated, tone_style, target_variant)
-    if mismatch or style_missing or variant_drift:
+    if mismatch or style_missing or variant_drift or script_drift or hk_spoken_missing or hk_written_too_colloquial:
         correction_rules = []
         if mismatch:
             correction_rules.append(f"Output must be in target variant '{target_variant}' only.")
@@ -272,6 +291,18 @@ def call_deepseek(text, source_language, target_variant, tone_style):
             correction_rules.append(
                 "Detected Hong Kong/Cantonese wording. Rewrite into Taiwan-standard written Traditional Chinese (zh_tw) "
                 "and avoid Cantonese-specific particles/phrasing."
+            )
+        if script_drift:
+            correction_rules.append(
+                "Detected Simplified Chinese characters. Rewrite entirely in Traditional Chinese characters for the selected target variant."
+            )
+        if hk_spoken_missing:
+            correction_rules.append(
+                "Target is Hong Kong spoken Cantonese. Use authentic Cantonese colloquial particles and Hong Kong netizen phrasing."
+            )
+        if hk_written_too_colloquial:
+            correction_rules.append(
+                "Target is Hong Kong written Chinese. Keep Traditional Chinese and Hong Kong wording, but reduce colloquial Cantonese particles."
             )
         if style_missing and tone_style == "floptropica":
             correction_rules.append(
