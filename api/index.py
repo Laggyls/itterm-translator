@@ -62,6 +62,7 @@ STYLE_RULES = {
         "Best for entertainment captions, meme posts, and dramatic reactions, not for official content. "
         "Emoji style should frequently include symbols like stars, sparkles, nails, lips, avocado, side-eye, hearts, flames, and glam vibes "
         "(for example: ⭐, 🌟, ✨, 💅, 💋, 🥑, 🙄, 👀, 💖, 💘, 🔥, 👑, 🎀) when it fits the sentence naturally. "
+        "incorporate Internet slang in sentence, such as 妈呀大姐, 包子你无敌, and more in Chinese. "
         "Allow bizarre but coherent creative additions for context and humor, as long as core meaning and facts remain accurate."
     ),
     "linkedin": (
@@ -203,7 +204,7 @@ def build_system_prompt(target_variant, tone_style):
             "Use signature slang like SLAYYYY, Poosay, pookie, Queen, diva naturally in the output. "
             "If target output is English, include expressive FULL-CAPS stress words (for example: SLAYYYY, ICONIC, MAJOR, LITERALLY). "
             "Be more bizarre, vivid, and context-rich than standard translation while preserving intent. "
-            "For Chinese outputs, ensure native Chinese internet flavor by target variant: "
+            "For Chinese outputs, ensure native Chinese internet flavor by target variant, include slang from the online Chinese gay community like 妈呀大姐,宝子你无敌,and other."
             "Mainland should feel like Bilibili/Weibo meme speech, Taiwan should feel like Dcard/PTT/Threads wording, "
             "Hong Kong written should reflect HK online written style, and Hong Kong spoken should use authentic Cantonese netizen tone."
         )
