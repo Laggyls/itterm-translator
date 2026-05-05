@@ -92,9 +92,25 @@ def contains_cjk(text):
     return bool(re.search(r"[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]", text))
 
 
+def split_sentences(text):
+    parts = re.split(r"(?<=[.!?。！？])\s*", text.strip())
+    return [part for part in parts if part]
+
+
+def has_floptropica_sentence_emojis(text):
+    sentences = split_sentences(text)
+    if not sentences:
+        return False
+    emoji_pat = re.compile(r"[⭐🌟✨💅💋🥑🙄👀]")
+    # Require emoji in most sentences, not only one emoji dump at the end.
+    sentences_with_emoji = sum(1 for s in sentences if emoji_pat.search(s))
+    required = max(1, (len(sentences) + 1) // 2)
+    return sentences_with_emoji >= required
+
+
 def has_required_style_markers(text, tone_style):
     if tone_style == "floptropica":
-        return bool(re.search(r"[⭐🌟✨💅💋🥑🙄👀]", text))
+        return has_floptropica_sentence_emojis(text)
     return True
 
 
@@ -109,7 +125,9 @@ def build_system_prompt(target_variant, tone_style):
             "You may creatively adapt wording for humor and personality (not strict one-to-one translation), "
             "but keep the core meaning and key facts intact. "
             "Reference iconic FLOPTROPICA culture elements where relevant and natural, such as Jiafei, CupcakKe, or DaBoyz. "
-            "Do not force references if the input context is serious or unrelated."
+            "Do not force references if the input context is serious or unrelated. "
+            "Distribute emoji across sentences: ideally add one fitting emoji near the end of each sentence, "
+            "instead of placing all emojis only at the very end."
         )
 
     return (
@@ -176,7 +194,8 @@ def call_deepseek(text, source_language, target_variant, tone_style):
             correction_rules.append(f"Output must be in target variant '{target_variant}' only.")
         if style_missing and tone_style == "floptropica":
             correction_rules.append(
-                "Include at least 2 fitting FLOPTROPICA emojis (for example from ⭐ 🌟 ✨ 💅 💋 🥑 🙄 👀)."
+                "Reformat in FLOPTROPICA style with sentence-level emoji distribution: add one fitting emoji near the end of most sentences, "
+                "not just a single emoji cluster at the end. Use symbols like ⭐ 🌟 ✨ 💅 💋 🥑 🙄 👀."
             )
         retry_payload = {
             "model": "deepseek-chat",
