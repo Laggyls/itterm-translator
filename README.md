@@ -5,6 +5,8 @@ Speak Like A Native Chinese 像中文母語者一樣說話
 This project is a translator website powered by DeepSeek API.  
 本專案是使用 DeepSeek API 的翻譯網站。
 
+Please access the website [here](laggyls.github.io/ctc-translator/).  請點擊 [此處](laggyls.github.io/ctc-translator/) 進入網站。
+
 ### Features 功能
 
 - English <-> Chinese translation 中英文雙向翻譯
